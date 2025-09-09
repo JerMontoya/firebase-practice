@@ -11,20 +11,26 @@ import {
 function App() {
   const [user, setUser] = React.useState({});
   const [loading, setLoading] = React.useState(true);
+  const [authLoading, setAuthLoading] = React.useState(false);
 
   React.useEffect(() => {
     onAuthStateChanged(auth, (user) => {
-      setLoading(false)
-      if(user) {
-        setUser(user)
-      }
-    })
+      setTimeout(() => {
+
+        setLoading(false);
+        if (user) {
+          setUser(user);
+        } else {
+          setUser({});
+        }
+      }, 2000)
+    });
   }, []);
 
   function register() {
     createUserWithEmailAndPassword(auth, "email@email.com", "test123")
       .then((user) => {
-        console.log(user);
+        setUser(user);
       })
       .catch((error) => {
         console.log(error);
@@ -32,12 +38,17 @@ function App() {
   }
 
   function login() {
+    setAuthLoading(true);
     signInWithEmailAndPassword(auth, "email@email.com", "test123")
       .then(({ user }) => {
-        setUser(user);
+        setTimeout(() => {
+          setUser(user);
+          setAuthLoading(false);
+        }, 1000);
       })
       .catch((error) => {
         console.log(error.message);
+        setAuthLoading(false);
       });
   }
 
@@ -46,12 +57,31 @@ function App() {
     setUser({});
   }
 
+
   return (
     <div className="App">
-      <button onClick={register}>Register</button>
-      <button onClick={login}>Login</button>
-      <button onClick={logout}>Logout</button>
-      {loading ? 'loading...' : user.email}
+      {authLoading ? (
+        <div className="App__container">
+        <div className="skeleton skeleton-button"></div>
+        <div className="skeleton skeleton-button"></div>
+      </div>
+      ) : user?.email ? (
+        <>
+          <div className="logout__container">
+            <button className="user__logout" onClick={logout}>
+              {user.email[0].toUpperCase()}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+        <div className="logout__container">
+
+          <button className="btn" onClick={register}>Register</button>
+          <button className="btn" onClick={login}>Login</button>
+        </div>
+        </>
+      )}
     </div>
   );
 }
